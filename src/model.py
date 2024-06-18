@@ -133,3 +133,71 @@ class MLP(nn.Module):
         output_mid_list.append(x.clone().detach().cpu())
         output_after_list.append(x.clone().detach().cpu())
         return output_before_list,output_mid_list,output_after_list,x
+    
+
+
+class CNN(nn.Module):
+    def __init__(self):
+        super(CNN, self).__init__()
+        self.conv1 = nn.Conv2d(1, 16, kernel_size=3, padding=1)
+        self.bn1 = nn.BatchNorm2d(16)
+        
+        self.conv2 = nn.Conv2d(16, 16, kernel_size=3, padding=1)
+        self.bn2 = nn.BatchNorm2d(16)
+        self.conv3 = nn.Conv2d(16, 16, kernel_size=3, padding=1)
+        self.bn3 = nn.BatchNorm2d(16)
+        self.conv4 = nn.Conv2d(16, 16, kernel_size=3, padding=1)
+        self.bn4 = nn.BatchNorm2d(16)
+        self.conv5 = nn.Conv2d(16, 16, kernel_size=3, padding=1)
+        self.bn5 = nn.BatchNorm2d(16)
+        self.conv6 = nn.Conv2d(16, 16, kernel_size=3, padding=1)
+        self.bn6 = nn.BatchNorm2d(16)
+        self.pool = nn.MaxPool2d(2, 2) 
+        self.dropout = nn.Dropout(0)
+        self.upsample = nn.Upsample(scale_factor=2, mode='nearest')
+        self.fc1 = nn.Linear(16*10*10, 10)
+
+    def forward(self, x):
+        x = x.reshape(x.shape[0],1,10,10)
+        x = self.upsample(self.pool(F.relu(self.bn1(self.conv1(x)))))
+        x = self.dropout(x)
+        x = self.upsample(self.pool(F.relu(self.bn2(self.conv2(x)))))
+        x = self.dropout(x)
+        x = self.upsample(self.pool(F.relu(self.bn3(self.conv3(x)))))
+        x = self.dropout(x)
+        x = self.upsample(self.pool(F.relu(self.bn4(self.conv4(x)))))
+        x = self.dropout(x)
+        x = self.upsample(self.pool(F.relu(self.bn5(self.conv5(x)))))
+        x = self.dropout(x)
+        x = self.upsample(self.pool(F.relu(self.bn6(self.conv6(x)))))
+        x = self.dropout(x)
+        x = x.reshape(x.shape[0],-1)
+        x = self.fc1(x)
+        return x
+    def get_mid_output(self,x):
+        with torch.no_grad():
+            x_list=[]
+            x_list.append(x.detach().clone().cpu().reshape(x.shape[0],-1))
+            x = x.reshape(x.shape[0],1,10,10)
+            x = self.upsample(self.pool(F.relu(self.bn1(self.conv1(x)))))
+            x = self.dropout(x)
+            x_list.append(x.detach().clone().cpu().reshape(x.shape[0],-1))
+            x = self.upsample(self.pool(F.relu(self.bn2(self.conv2(x)))))
+            x = self.dropout(x)
+            x_list.append(x.detach().clone().cpu().reshape(x.shape[0],-1))
+            x = self.upsample(self.pool(F.relu(self.bn3(self.conv3(x)))))
+            x = self.dropout(x)
+            x_list.append(x.detach().clone().cpu().reshape(x.shape[0],-1))
+            x  = self.upsample(self.pool(F.relu(self.bn4(self.conv4(x)))))
+            x = self.dropout(x)
+            x_list.append(x.detach().clone().cpu().reshape(x.shape[0],-1))
+            x = self.upsample(self.pool(F.relu(self.bn5(self.conv5(x)))))
+            x = self.dropout(x)
+            x_list.append(x.detach().clone().cpu().reshape(x.shape[0],-1))
+            x = self.upsample(self.pool(F.relu(self.bn6(self.conv6(x)))))
+            x = self.dropout(x)
+            x_list.append(x.detach().clone().cpu().reshape(x.shape[0],-1))
+            x = x.reshape(x.shape[0],-1)
+            x = self.fc1(x)
+            x_list.append(x.detach().clone().cpu().reshape(x.shape[0],-1))
+        return _,_, x_list,_
