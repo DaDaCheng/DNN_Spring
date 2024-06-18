@@ -1,0 +1,135 @@
+import torch
+from torch import nn
+import torch.nn.functional as F
+import numpy as np
+import matplotlib.pyplot as plt
+#from scipy import stats
+import time
+
+import torch.nn.init as init
+
+
+def is_none(value):
+    return value is None
+
+
+LeakyReLU=torch.nn.LeakyReLU
+
+
+
+class MLP(nn.Module):
+    def __init__(self, args):
+        super(MLP, self).__init__()
+
+        out_dim=args.net_outdim
+        depth=args.net_depth
+        dim=args.net_dim
+        act=args.net_act
+        bias=args.net_bias
+        tau=args.net_tau
+        self.bias=bias
+        self.tau=tau
+        self.args=args
+        self.depth=depth
+        self.isbatchnorm=args.net_isbatchnorm
+        self.dim=dim
+        
+        if act=='LeakyReLU':
+            ReLU=LeakyReLU
+        elif act=='TReLU':
+            ReLU=TReLU
+        
+
+        self.fc_list=torch.nn.ModuleList([])
+        self.ac_list=torch.nn.ModuleList([])
+        self.do_list=torch.nn.ModuleList([])
+
+        if self.isbatchnorm:
+            self.bminput=nn.BatchNorm1d(dim)
+            self.bmoutput=torch.nn.Identity()
+            self.bm_list=torch.nn.ModuleList([])
+        for i in range(self.depth-1):
+            self.fc_list.append(nn.Linear(dim, dim,bias=bias))
+            self.ac_list.append(ReLU(tau))
+            #self.ac_list.append(torch.nn.ReLU())
+            if self.isbatchnorm:
+                self.bm_list.append(nn.BatchNorm1d(dim))
+            self.do_list.append(torch.nn.Dropout(args.net_p))
+        self.fc_list.append(nn.Linear(dim,out_dim,bias=bias))
+        self.init_scale=args.init_scale
+        if args.init_scale=='default':
+            pass
+        else:
+            self.reset_parameters()
+    def reset_parameters(self) -> None:
+        print('init_scale:',self.init_scale)
+        for i in range(self.depth):
+            if self.init_scale=='orth':
+                init.orthogonal_(self.fc_list[i].weight)
+            if self.init_scale=='kaiming':
+                init.kaiming_uniform_(self.fc_list[i].weight, nonlinearity='leaky_relu',a=self.tau)
+            if self.init_scale=='normal':
+                init.normal_(self.fc_list[i].weight)
+            if self.init_scale=='NTK':
+                init.normal_(self.fc_list[i].weight)
+            if self.init_scale=='id':
+                init.eye_(self.fc_list[i].weight)
+            if self.args.init_constant==1:
+                pass
+            else:
+                self.fc_list[i].weight.data = self.fc_list[i].weight.data
+            if self.bias:
+                if self.args.init_zerobias:
+                    init.zeros_(self.fc_list[i].bias)
+                else:
+                    if self.init_scale=='NTK':
+                        init.uniform_(self.fc_list[i].bias, -1.0, 1.0)
+                    else:
+                        init.uniform_(self.fc_list[i].bias,-1/np.sqrt(self.dim),1/np.sqrt(self.dim))
+#       
+    def forward(self, x):
+        if self.isbatchnorm:
+            x=self.bminput(x)
+        for i in range(self.depth-1):
+            x=self.fc_list[i](x)
+            if self.init_scale=='NTK':
+                x=x/np.sqrt(self.dim)
+            if self.isbatchnorm:
+                x=self.bm_list[i](x)
+            x=self.ac_list[i](x) 
+            x=self.do_list[i](x)
+        x=self.fc_list[-1](x)
+        if self.init_scale=='NTK':
+            x=x/np.sqrt(self.dim)
+        if self.isbatchnorm:
+            x=self.bmoutput(x)
+        return x
+    def get_mid_output(self,x):
+        output_before_list=[]
+        output_mid_list=[]
+        output_after_list=[]
+        output_before_list.append(x.clone().detach().cpu())
+        if self.isbatchnorm:
+            x=self.bminput(x)
+        output_mid_list.append(x.clone().detach().cpu())
+        output_after_list.append(x.clone().detach().cpu())
+        for i in range(self.depth-1):
+            x=self.fc_list[i](x)
+            if self.init_scale=='NTK':
+                x=x/np.sqrt(self.dim)
+            output_before_list.append(x.clone().detach().cpu())
+            if self.isbatchnorm:
+                x=self.bm_list[i](x)
+            output_mid_list.append(x.clone().detach().cpu())
+            x=self.ac_list[i](x)
+            output_after_list.append(x.clone().detach().cpu())
+            x=self.do_list[i](x)
+        x=self.fc_list[-1](x)
+        if self.init_scale=='NTK':
+            x=x/np.sqrt(self.dim)
+        output_before_list.append(x.clone().detach().cpu())
+        if self.isbatchnorm:
+            x=self.bmoutput(x)
+        output_mid_list.append(x.clone().detach().cpu())
+        output_after_list.append(x.clone().detach().cpu())
+        return output_before_list,output_mid_list,output_after_list,x
