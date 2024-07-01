@@ -77,7 +77,7 @@ class MLP(nn.Module):
             if self.args.init_constant==1:
                 pass
             else:
-                self.fc_list[i].weight.data = self.fc_list[i].weight.data
+                self.fc_list[i].weight.data = self.fc_list[i].weight.data*self.args.init_constant
             if self.bias:
                 if self.args.init_zerobias:
                     init.zeros_(self.fc_list[i].bias)
