@@ -26,7 +26,7 @@ parser.add_argument('--net_bias', type=bool, default=True)
 parser.add_argument('--net_isbatchnorm', type=str2bool, nargs='?', const=True, default=True)         
 parser.add_argument('--net_p', type=float, default=0)
 parser.add_argument('--net_act', type=str, default='LeakyReLU')
-parser.add_argument('--net_tau', type=float, default=1)
+parser.add_argument('--net_alpha', type=float, default=1,help='negative slope for LeakyReLU')
 
 parser.add_argument('--init_scale', type=str, default='default') 
 parser.add_argument('--init_zerobias', type=str2bool, nargs='?', const=True, default=True) 
@@ -203,7 +203,7 @@ import sys
 log_file = open('save/PD/R_'+args.tag+'.txt', 'a')
 sys.stdout = log_file
 sys.setrecursionlimit(1000000)
-out_list=[seed]+[lr]+[args.data_batchsize]+[args.net_tau]+[args.net_p]+[acc.item()]+[v_W,c_W,v_Q,c_Q]+Dmp_list+Ds_list+iDmp_list+[noise]+[top_eigenvalues[-1]]+[np.mean(trace)]
+out_list=[seed]+[lr]+[args.data_batchsize]+[args.net_alpha]+[args.net_p]+[acc.item()]+[v_W,c_W,v_Q,c_Q]+Dmp_list+Ds_list+iDmp_list+[noise]+[top_eigenvalues[-1]]+[np.mean(trace)]
 print(out_list)
 sys.stdout = sys.__stdout__
 log_file.close()

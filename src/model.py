@@ -21,9 +21,9 @@ class MLP(nn.Module):
         dim=args.net_dim
         act=args.net_act
         bias=args.net_bias
-        tau=args.net_tau
+        alpha=args.net_alpha
         self.bias=bias
-        self.tau=tau
+        self.alpha=alpha
         self.args=args
         self.depth=depth
         self.isbatchnorm=args.net_isbatchnorm
@@ -39,7 +39,7 @@ class MLP(nn.Module):
             self.bm_list=torch.nn.ModuleList([])
         for i in range(self.depth-1):
             self.fc_list.append(nn.Linear(dim, dim,bias=bias))
-            self.ac_list.append(self.act(tau))
+            self.ac_list.append(self.act(alpha))
             if self.isbatchnorm:
                 self.bm_list.append(nn.BatchNorm1d(dim))
             self.do_list.append(torch.nn.Dropout(args.net_p))
@@ -55,7 +55,7 @@ class MLP(nn.Module):
             if self.init_scale=='orth':
                 init.orthogonal_(self.fc_list[i].weight)
             if self.init_scale=='kaiming':
-                init.kaiming_uniform_(self.fc_list[i].weight, nonlinearity='leaky_relu',a=self.tau)
+                init.kaiming_uniform_(self.fc_list[i].weight, nonlinearity='leaky_relu',a=self.alpha)
             if self.init_scale=='normal':
                 init.normal_(self.fc_list[i].weight)
             if self.init_scale=='NTK':
