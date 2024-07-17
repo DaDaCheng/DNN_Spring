@@ -12,11 +12,6 @@ import torch.nn.init as init
 def is_none(value):
     return value is None
 
-
-LeakyReLU=torch.nn.LeakyReLU
-
-
-
 class MLP(nn.Module):
     def __init__(self, args):
         super(MLP, self).__init__()
@@ -33,13 +28,7 @@ class MLP(nn.Module):
         self.depth=depth
         self.isbatchnorm=args.net_isbatchnorm
         self.dim=dim
-        
-        if act=='LeakyReLU':
-            ReLU=LeakyReLU
-        elif act=='TReLU':
-            ReLU=TReLU
-        
-
+        self.act=torch.nn.LeakyReLU
         self.fc_list=torch.nn.ModuleList([])
         self.ac_list=torch.nn.ModuleList([])
         self.do_list=torch.nn.ModuleList([])
@@ -50,8 +39,7 @@ class MLP(nn.Module):
             self.bm_list=torch.nn.ModuleList([])
         for i in range(self.depth-1):
             self.fc_list.append(nn.Linear(dim, dim,bias=bias))
-            self.ac_list.append(ReLU(tau))
-            #self.ac_list.append(torch.nn.ReLU())
+            self.ac_list.append(self.act(tau))
             if self.isbatchnorm:
                 self.bm_list.append(nn.BatchNorm1d(dim))
             self.do_list.append(torch.nn.Dropout(args.net_p))

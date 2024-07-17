@@ -129,24 +129,6 @@ def get_acc(model,test_gen,dim,device):
     return ((100*correct)/(total+1))
 
 
-def get_X(model,train_gen,size,device,measure='logD',multi=False):
-    model.eval()
-    if measure=='logD':
-        measure_func=smeasure_logD
-    if measure=='LinerR':
-        measure_func=smeasure_sqrtLinR
-    if measure=='LogicR':
-        measure_func=smeasure_LogicR
-    if measure=='LinerR_onehot':
-        measure_func=smeasure_sqrtLinR_onehot
-    with torch.no_grad():
-        Xcat_list_new,ycat_list=get_seperate_data(model,train_gen,size,device)
-        measure_i_list = []     
-        for i in range(len(Xcat_list_new)):
-            measure_i=measure_func(Xcat_list_new[i].detach().clone().cpu(),ycat_list.cpu()) 
-            measure_i_list.append(measure_i)
-    return measure_i_list
-
 
 
 
@@ -188,6 +170,7 @@ class GaussianMixtureDataset(Dataset):
     
 
 def v_and_c(data,remove_last_layer=True):
+    #compute variance and curvature 
     if remove_last_layer:
         data=data[:-1]
     data_len=len(data)
