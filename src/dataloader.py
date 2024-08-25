@@ -40,7 +40,7 @@ def load_real(args):
             transforms.Resize(size=size)
         ])
     
-        train_data = dsets.MNIST(root = './data', train = True, transform = transform, download = True)
+        train_data = dsets.FashionMNIST(root = './data', train = True, transform = transform, download = True)
         train_data, val_data = torch.utils.data.random_split(train_data, [data_len, 60000-data_len], generator=torch.Generator().manual_seed(1))
         val_data,_ = torch.utils.data.random_split(val_data, [data_len, 60000-data_len-data_len], generator=torch.Generator().manual_seed(1))
         
@@ -53,11 +53,17 @@ def load_real(args):
             test_data = Subset(test_data, indices)
         
     if data_dataset =='CIFAR10':
+        
+        class FlattenTransform:
+            def __call__(self, image):
+                return image.view(-1) 
         transform=transforms.Compose([
                         transforms.ToTensor(),
                         #transforms.Grayscale(),
+                        transforms.Grayscale(num_output_channels=1),
                         transforms.Normalize(0,1),
                         transforms.Resize(size=size,antialias=True),
+                        #FlattenTransform()
                     ])
         
         # transform = transforms.Compose(
@@ -70,7 +76,7 @@ def load_real(args):
         print('cifar10')
         train_data, val_data = torch.utils.data.random_split(train_data, [data_len, 50000-data_len],generator=torch.Generator().manual_seed(1))
         val_data,_ = torch.utils.data.random_split(val_data, [data_len, 50000-data_len-data_len], generator=torch.Generator().manual_seed(1))
-        test_data = dsets.CIFAR10(root = './data', train = False, transform = transform)
+        test_data = dsets.CIFAR10(root = './data', train = True, transform = transform)
         
         if maxlabel==2:
             indices = [i for i, (_, label) in enumerate(train_data) if label in [0, 1]]
