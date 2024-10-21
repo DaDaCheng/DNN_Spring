@@ -11,6 +11,7 @@ from sklearn.metrics import log_loss
 from torch.utils.data import Dataset
 import torch.nn.functional as F
 
+
 def smeasure_logD(X,labels,detail=False):
     device=X.device
     number_label=int(labels.max()+1)

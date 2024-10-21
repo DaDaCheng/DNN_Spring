@@ -84,7 +84,7 @@ if dataset in ['MNIST','CIFAR10','FakeData','FashionMNIST']:
     real_dataset=True
     train_loader, test_loader,val_loader=load_real(args)
         
-    
+# define MLP    
 model=MLP(args)
 model_init=copy.deepcopy(model)
 maxlabel=args.data_maxlabel
@@ -169,7 +169,7 @@ for epoch_id in range(epoch):
             break
     previous_loss=loss_epoch
     
-          
+# compute the separation measure       
 model.eval()
 model_temp=copy.deepcopy(model)
 model_temp=model_temp.to('cpu')
@@ -188,10 +188,10 @@ for xmid in output_after_list:
     Ds_list.append(Ds)
     iDmp_list.append(ilogD)
 
-v_W,c_W=v_and_c(Dmp_list,remove_last_layer=True)
-v_Q,c_Q=v_and_c(Ds_list,remove_last_layer=True)                                        
+v_mp,c_mp=v_and_c(Dmp_list,remove_last_layer=True)
+v_s,c_s=v_and_c(Ds_list,remove_last_layer=True)                                        
 acc=get_acc(model, test_loader, dim,device)
-print(epoch_id,loss.item(),acc.item(),v_W,v_Q)
+print(epoch_id,loss.item(),acc.item(),v_mp,v_s)
 model.eval()
 hessian_comp = hessian(model, loss_func, data=(X_cat, y_cat), cuda=torch.cuda.is_available())
 top_eigenvalues, top_eigenvector = hessian_comp.eigenvalues()
@@ -203,7 +203,7 @@ import sys
 log_file = open('save/PD/R_'+args.tag+'.txt', 'a')
 sys.stdout = log_file
 sys.setrecursionlimit(1000000)
-out_list=[seed]+[lr]+[args.data_batchsize]+[args.net_alpha]+[args.net_p]+[acc.item()]+[v_W,c_W,v_Q,c_Q]+Dmp_list+Ds_list+iDmp_list+[noise]+[top_eigenvalues[-1]]+[np.mean(trace)]
+out_list=[seed]+[lr]+[args.data_batchsize]+[args.net_alpha]+[args.net_p]+[acc.item()]+[v_mp,c_mp,v_s,c_s]+Dmp_list+Ds_list+iDmp_list+[noise]+[top_eigenvalues[-1]]+[np.mean(trace)]
 print(out_list)
 sys.stdout = sys.__stdout__
 log_file.close()
