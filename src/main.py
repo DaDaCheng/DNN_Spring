@@ -84,7 +84,7 @@ if dataset in ['MNIST','CIFAR10','FakeData','FashionMNIST']:
     real_dataset=True
     train_loader, test_loader,val_loader=load_real(args)
         
-# define MLP    
+# Define MLP    
 model=MLP(args)
 model_init=copy.deepcopy(model)
 maxlabel=args.data_maxlabel
