@@ -1,6 +1,6 @@
 
 # A spring–block theory of feature learning in deep neural networks
-This repository contains the source code and videos for the paper: ___A spring–block theory of feature learning in deep neural networks___. More details can be found on [arXiv](https://arxiv.org/abs/XXXX.XXXXX).
+This repository contains the source code and videos for the paper: ___A spring–block theory of feature learning in deep neural networks___. More details can be found [here](https://arxiv.org/abs/2407.19353).
 
 <div style="text-align: center;">
     <img src="figs/DNN_spring.png" alt="illustration">
