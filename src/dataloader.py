@@ -76,7 +76,7 @@ def load_real(args):
         print('cifar10')
         train_data, val_data = torch.utils.data.random_split(train_data, [data_len, 50000-data_len],generator=torch.Generator().manual_seed(1))
         val_data,_ = torch.utils.data.random_split(val_data, [data_len, 50000-data_len-data_len], generator=torch.Generator().manual_seed(1))
-        test_data = dsets.CIFAR10(root = './data', train = True, transform = transform)
+        test_data = dsets.CIFAR10(root = './data', train = False, transform = transform)
         
         if maxlabel==2:
             indices = [i for i, (_, label) in enumerate(train_data) if label in [0, 1]]
