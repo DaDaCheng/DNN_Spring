@@ -24,7 +24,7 @@ parser.add_argument('--net_depth', type=int, default=8)
 parser.add_argument('--net_dim', type=int, default=100)
 parser.add_argument('--net_bias', type=bool, default=True)
 parser.add_argument('--net_isbatchnorm', type=str2bool, nargs='?', const=True, default=True)         
-parser.add_argument('--net_p', type=float, default=0)
+parser.add_argument('--net_p', type=float, default=0,help='drop out ratio')
 parser.add_argument('--net_act', type=str, default='LeakyReLU')
 parser.add_argument('--net_alpha', type=float, default=1,help='negative slope for LeakyReLU')
 
